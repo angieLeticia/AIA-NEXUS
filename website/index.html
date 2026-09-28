@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -25,6 +25,20 @@
         <section class="links">
             <a href="terms.html">Términos de Servicio</a>
             <a href="privacy.html">Política de Privacidad</a>
+            <a href="contact.html">Contacto</a>
+        </section>
+
+        <section>
+            <h2>Conectar una cuenta</h2>
+            <p>
+                Autoriza tu cuenta de TikTok para que Automatizacion Contenido
+                pueda identificarla. Este primer paso solo lee tu información
+                básica de perfil (nombre de usuario/avatar) para confirmar qué
+                cuenta quedó conectada — no publica ni modifica nada todavía.
+            </p>
+            <p class="links">
+                <a id="connect-tiktok" href="#">Connect TikTok</a>
+            </p>
         </section>
     </main>
 
@@ -34,7 +48,76 @@
             <a href="terms.html">Términos de Servicio</a>
             |
             <a href="privacy.html">Política de Privacidad</a>
+            |
+            <a href="contact.html">Contacto</a>
         </p>
     </footer>
+
+    <script>
+        (function () {
+            "use strict";
+
+            // Un único bloque de script (fix 2026 — el anterior quedó
+            // duplicado/mal cerrado con un error de sintaxis que dejaba
+            // "Connect TikTok" apuntando siempre a "#"; ver el commit de este
+            // arreglo para el detalle). AUTHORIZE_BASE_URL/REDIRECT_URI
+            // confirmados y ya en uso — se mantienen sin cambios.
+            var AUTHORIZE_BASE_URL = "https://www.tiktok.com/v2/auth/authorize/";
+            var CLIENT_KEY = "sbawezs7bd334bci0q"; // Client Key de SANDBOX de TikTok (no el de producción)
+            var REDIRECT_URI = "https://angieleticia.github.io/automatizacion-completa-de-contenido/oauth/tiktok-callback.html";
+
+            // Opción B (Content Posting API + draft) — agrega "video.upload"
+            // al scope de Login Kit. Requiere que la app tenga el producto
+            // Content Posting API aprobado en TikTok Developer Portal (fuera
+            // de este archivo, no se toca acá); ver docs/phase-5.12-tiktok-audit.md.
+            var SCOPE = "user.info.basic,video.upload";
+
+            // `state` generado en el momento, solo para esta autorización —
+            // nunca se guarda (ni en localStorage ni en ningún backend).
+            function randomState() {
+                if (window.crypto && window.crypto.getRandomValues) {
+                    var bytes = new Uint8Array(16);
+                    window.crypto.getRandomValues(bytes);
+                    return Array.prototype.map.call(bytes, function (b) {
+                        return b.toString(16).padStart(2, "0");
+                    }).join("");
+                }
+                return Math.random().toString(36).slice(2) + Date.now().toString(36);
+            }
+
+            function buildAuthorizeUrl() {
+                var url = new URL(AUTHORIZE_BASE_URL);
+                url.searchParams.set("client_key", CLIENT_KEY.trim());
+                url.searchParams.set("redirect_uri", REDIRECT_URI);
+                url.searchParams.set("scope", SCOPE);
+                url.searchParams.set("response_type", "code");
+                url.searchParams.set("state", randomState());
+                // NUNCA client_secret aquí — un client_secret no debe existir en el frontend.
+                return url.toString();
+            }
+
+            var link = document.getElementById("connect-tiktok");
+            if (!link) return;
+
+            var missingConfig = AUTHORIZE_BASE_URL.indexOf("PLACEHOLDER") !== -1 || CLIENT_KEY.indexOf("PLACEHOLDER") !== -1;
+            if (missingConfig) {
+                link.setAttribute("aria-disabled", "true");
+                link.addEventListener("click", function (ev) {
+                    ev.preventDefault();
+                    window.alert("Falta configurar AUTHORIZE_BASE_URL y/o CLIENT_KEY en website/index.html antes de poder conectar TikTok de verdad.");
+                });
+                return;
+            }
+
+            // Se precalcula al cargar la página -> "copiar enlace" ya no da
+            // "#". También se recalcula (state nuevo) en cada click, antes de
+            // que el navegador siga el link — sigue siendo una navegación
+            // normal iniciada por el usuario, nunca automática.
+            link.href = buildAuthorizeUrl();
+            link.addEventListener("click", function () {
+                link.href = buildAuthorizeUrl();
+            });
+        })();
+    </script>
 </body>
 </html>

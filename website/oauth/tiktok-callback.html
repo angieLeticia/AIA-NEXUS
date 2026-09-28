@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>TikTok OAuth callback</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #222;
+    background: #f7f7f7;
+  }
+  header {
+    padding: 40px 20px;
+    text-align: center;
+    background: #111;
+    color: white;
+  }
+  header h1 { margin: 0; font-size: 28px; }
+  main {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+  }
+  section {
+    background: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+  }
+  .status-ok { color: #146c2e; font-weight: bold; }
+  .status-pending { color: #444; font-weight: bold; }
+  .status-error { color: #a12622; font-weight: bold; }
+  .error-box {
+    word-break: break-word;
+    background: #fdecea;
+    border: 1px solid #f5c2c0;
+    border-radius: 6px;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 13px;
+    margin: 15px 0;
+  }
+  .hint { color: #555; font-size: 14px; }
+  a { color: #0057b8; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>TikTok OAuth callback</h1>
+    <p>Intercambia el authorization code por un token del lado del servidor.</p>
+  </header>
+
+  <main>
+    <section id="result-section">
+      <p id="status-line" class="status-pending">Procesando respuesta...</p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // Base de las Edge Functions de Supabase. URL pública del proyecto
+      // (no es un secreto) — se deja como constante configurable, sin
+      // project ref inventado: reemplazar por
+      // "https://<tu-project-ref>.supabase.co/functions/v1" una vez conocido.
+      var SUPABASE_FUNCTIONS_BASE_URL = "https://xbwbwzehnbofargskxyb.supabase.co/functions/v1";
+
+      // Sandbox/demo: el canal está fijo a "SIN EXPLICACIÓN" por ahora — no
+      // hay todavía un selector de canal en la web (website/index.html no se
+      // tocó en esta fase). Antes de soportar múltiples canales desde la web,
+      // este valor debe volverse dinámico (ver docs/tiktok-oauth-edge-function.md).
+      var CHANNEL_NAME = "SIN EXPLICACIÓN";
+
+      function parseFragmentParams(hash) {
+        var result = {};
+        var raw = hash.indexOf("#") === 0 ? hash.slice(1) : hash;
+        if (!raw) return result;
+        var pairs = raw.split("&");
+        for (var i = 0; i < pairs.length; i++) {
+          var pair = pairs[i];
+          if (!pair) continue;
+          var eqIdx = pair.indexOf("=");
+          var key, value;
+          if (eqIdx === -1) {
+            key = pair;
+            value = "";
+          } else {
+            key = pair.slice(0, eqIdx);
+            value = pair.slice(eqIdx + 1);
+          }
+          try {
+            key = decodeURIComponent(key);
+          } catch (e) {}
+          try {
+            value = decodeURIComponent(value);
+          } catch (e) {}
+          result[key] = value;
+        }
+        return result;
+      }
+
+      var fragmentParams = parseFragmentParams(window.location.hash);
+      var searchParams = new URLSearchParams(window.location.search);
+      var authCode = searchParams.get("code");
+      var state = searchParams.get("state") || fragmentParams["state"] || null;
+
+      // TikTok devuelve estos parámetros (públicos, no sensibles) cuando el
+      // usuario deniega el permiso o hay un problema de configuración.
+      var errorCode = searchParams.get("error") || fragmentParams["error"] || null;
+      var errorReason = searchParams.get("error_reason") || fragmentParams["error_reason"] || null;
+      var errorDescription = searchParams.get("error_description") || fragmentParams["error_description"] || null;
+      var errorCodeNumeric = searchParams.get("error_code") || fragmentParams["error_code"] || null;
+
+      // Limpieza INMEDIATA de fragmento Y query string — el `code` es de un
+      // solo uso y no debe quedar visible en la barra de direcciones ni en
+      // el historial más tiempo del necesario. NUNCA se guarda en
+      // localStorage/sessionStorage, NUNCA se imprime en consola.
+      if (window.location.hash || window.location.search) {
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+
+      var section = document.getElementById("result-section");
+      var statusLine = document.getElementById("status-line");
+
+      function setStatus(text, cssClass) {
+        statusLine.className = cssClass;
+        statusLine.textContent = text;
+      }
+
+      function el(tag, attrs, children) {
+        var node = document.createElement(tag);
+        if (attrs) {
+          for (var k in attrs) {
+            if (Object.prototype.hasOwnProperty.call(attrs, k)) {
+              if (k === "text") node.textContent = attrs[k];
+              else node.setAttribute(k, attrs[k]);
+            }
+          }
+        }
+        if (children) for (var i = 0; i < children.length; i++) node.appendChild(children[i]);
+        return node;
+      }
+
+      // Rama de error de TikTok — antes que nada más.
+      if (errorCode) {
+        setStatus("TikTok devolvió un error — no se recibió ningún code.", "status-error");
+        var errorLines = ["error: " + errorCode];
+        if (errorReason) errorLines.push("error_reason: " + errorReason);
+        if (errorCodeNumeric) errorLines.push("error_code: " + errorCodeNumeric);
+        if (errorDescription) errorLines.push("error_description: " + errorDescription);
+        section.appendChild(el("div", { class: "error-box", text: errorLines.join("\n") }));
+        section.appendChild(
+          el("p", { class: "hint", text: "Esto no es un secreto - es la respuesta pública de TikTok explicando por qué no se emitió un code." })
+        );
+        return;
+      }
+
+      if (!authCode) {
+        setStatus("No se recibió ningún código de autorización.", "status-error");
+        return;
+      }
+
+      if (SUPABASE_FUNCTIONS_BASE_URL.indexOf("PLACEHOLDER") !== -1) {
+        setStatus("Falta configurar SUPABASE_FUNCTIONS_BASE_URL en este archivo — no se puede completar la conexión.", "status-error");
+        return;
+      }
+
+      // El `code` NO se muestra en pantalla ni se loguea — se envía directo
+      // al backend (POST), que es el único lugar donde se intercambia por
+      // tokens reales.
+      setStatus("Conectando…", "status-pending");
+
+      fetch(SUPABASE_FUNCTIONS_BASE_URL + "/tiktok-oauth-exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: authCode, channel_name: CHANNEL_NAME }),
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { httpOk: res.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (result.httpOk && result.data && result.data.ok) {
+            setStatus("Conectado ✅", "status-ok");
+            if (result.data.open_id_masked) {
+              section.appendChild(el("p", { class: "hint", text: "Cuenta conectada: " + result.data.open_id_masked }));
+            }
+          } else {
+            var message = (result.data && result.data.message) || "Error desconocido.";
+            setStatus("No se pudo completar la conexión.", "status-error");
+            section.appendChild(el("div", { class: "error-box", text: message }));
+          }
+        })
+        .catch(function () {
+          setStatus("No se pudo contactar el servidor para completar la conexión.", "status-error");
+        });
+      // Nota de seguridad: esta función nunca imprime `authCode`, tokens, ni
+      // ningún valor sensible en consola, ni los guarda en
+      // localStorage/sessionStorage/cookies. La respuesta del backend tampoco
+      // trae tokens — solo `ok`/`platform`/`open_id_masked` o un mensaje de error seguro.
+    })();
+  </script>
+</body>
+</html>
