@@ -49,11 +49,35 @@ if (-not (Test-Path $TsxBin)) {
     exit 1
 }
 
+# Guardia de mantenimiento (AGENT_PAUSE_GUARD_DESIGN) - jerarquia OR entre la
+# guardia global (para ambos wrappers) y la especifica de este agente. Archivo
+# marcador simple (Test-Path), sobrevive a reinicios de Windows, no depende del
+# estado Ready/Running de Task Scheduler, no toca .env.local ni Supabase.
+$PauseGuardGlobal = Join-Path $RepoRoot "agent\runtime\PAUSE_AGENTS"
+$PauseGuardSpecific = Join-Path $RepoRoot "agent\runtime\PAUSE_SCHEDULE"
+
+function Test-MaintenanceGuard {
+    if (Test-Path $PauseGuardGlobal) { return "PAUSE_AGENTS (global)" }
+    if (Test-Path $PauseGuardSpecific) { return "PAUSE_SCHEDULE (especifico)" }
+    return $null
+}
+
+$GuardReason = Test-MaintenanceGuard
+if ($GuardReason) {
+    Write-WrapperLog "MODO MANTENIMIENTO ACTIVO ($GuardReason) - el wrapper termina SIN ejecutar ninguna pasada."
+    exit 0
+}
+
 $StdOutLog = Join-Path $LogDir "schedule-agent-stdout.log"
 $StdErrLog = Join-Path $LogDir "schedule-agent-stderr.log"
 $POLL_INTERVAL_SECONDS = 300  # 5 minutos entre pasadas normales - ver nota arriba
 
 while ($true) {
+    $GuardReason = Test-MaintenanceGuard
+    if ($GuardReason) {
+        Write-WrapperLog "MODO MANTENIMIENTO ACTIVADO DURANTE LA EJECUCION ($GuardReason) - el wrapper termina, no se lanza otra pasada."
+        exit 0
+    }
     Write-WrapperLog "Lanzando: tsx agent/schedule/run.mts (una pasada - modo global)"
     $process = Start-Process -FilePath $TsxBin -ArgumentList "agent/schedule/run.mts" `
         -WorkingDirectory $RepoRoot -NoNewWindow -PassThru -Wait `

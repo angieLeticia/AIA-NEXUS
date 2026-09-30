@@ -19,6 +19,10 @@
 # agente de publicación (agent/): logs locales
 /agent/logs
 
+# guardias de mantenimiento de los wrappers (AGENT_PAUSE_GUARD_DESIGN) -
+# marcadores operativos locales, nunca deben commitearse
+agent/runtime/PAUSE_*
+
 # supabase CLI
 /supabase/.temp/
 
