@@ -114,7 +114,7 @@ async function processPost(postId: string, allowedAccountIds: string[]): Promise
   // A partir de aqui es publicacion REAL: DRY_RUN=false + channel_status
   // autoriza + autorizacion humana presente. Solo a partir de aqui es
   // seguro ejecutar operaciones externas de almacenamiento (mas abajo).
-  const publish = PUBLISHERS[platform as Exclude<typeof platform, "tiktok">];
+  const publish = PUBLISHERS[platform];
   if (!publish) {
     await finishWithFailure(post, `Sin publisher para '${platform}'.`, false);
     return;
@@ -128,9 +128,9 @@ async function processPost(postId: string, allowedAccountIds: string[]): Promise
   // persistida por scheduleContent.mts (ver validacion mas abajo).
   let postForPublisher: Record<string, unknown>;
 
-  if (platform === "youtube") {
+  if (platform === "youtube" || platform === "tiktok") {
     postForPublisher = { ...post, local_file_path: fileOutcome.contentFile.file_path };
-    log.info("[PUBLISH] YouTube: entrega directa desde disco local (sin ningun Storage)", {
+    log.info(`[PUBLISH] ${platform}: entrega directa desde disco local (sin ningun Storage)`, {
       postId: post.id,
       localFilePath: fileOutcome.contentFile.file_path,
     });
@@ -335,7 +335,7 @@ async function processPost(postId: string, allowedAccountIds: string[]): Promise
     // posts hermanos. NUNCA se persiste video_url (la URL firmada es
     // temporal por diseño, ver Regla 6) - solo el object key, que es estable
     // y determinista por hash.
-    if (platform !== "youtube" && "video_path" in postForPublisher) {
+    if (platform !== "youtube" && platform !== "tiktok" && "video_path" in postForPublisher) {
       publishedPayload.video_path = postForPublisher.video_path;
     }
     if (CLAIMED_AT_MIGRATION_APPLIED) {
@@ -406,7 +406,7 @@ async function processPost(postId: string, allowedAccountIds: string[]): Promise
     // Fase 5.0 — pieza traída de Flow A (ver storageBridge.mts::cleanupVideoIfDone).
     // Solo aplica a lo que de verdad se subió a Storage (Instagram/Facebook) -
     // YouTube se entregó directo desde disco, nunca ocupó Storage.
-    if (platform !== "youtube" && "video_path" in postForPublisher) {
+    if (platform !== "youtube" && platform !== "tiktok" && "video_path" in postForPublisher) {
       try {
         await cleanupVideoIfDone(postForPublisher.video_path as string);
       } catch (cleanupErr) {

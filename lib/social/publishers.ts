@@ -1,6 +1,7 @@
 import { publishToYouTube } from "./youtube";
 import { publishToFacebook } from "./facebook";
 import { publishToInstagram } from "./instagram";
+import { publishToTikTok } from "./tiktok";
 import type { PublishResult, SocialPlatform, SocialPost } from "./types";
 
 // Fase 5.4 — onOperationRef es OPCIONAL y aditivo: reporta una referencia de
@@ -15,17 +16,14 @@ type Publisher = (post: SocialPost, credentials: Record<string, string>, onOpera
 
 // Registro único de "cómo se publica en cada plataforma". Añadir una nueva es
 // implementar su publishToX (recibe credenciales genéricas) y sumarla aquí.
-// TikTok — NO tiene publisher (deliberado, documentado en Fase 5.12/5.20,
-// bloqueador externo de aprobación de la app en TikTok Developer Portal, no
-// de código). Agent 1/2 SÍ generan metadata real para TikTok
-// (agent/analyze/generateMetadata.mts::buildTiktok()) - social_posts.hashtags
-// para un post de TikTok existiría igual que para las demás plataformas,
-// pero nunca llegaría a ningún lado porque no hay `tiktok` en este registro:
-// el mismo guard `if (!PUBLISHERS[platform])` (agent/schedule/resolveIdentity.mts,
-// agent/publish/resolveIdentity.mts) ya impide crear/publicar cualquier
-// social_post de TikTok, sin necesidad de ningún caso especial aquí.
+// TikTok — Direct Post real vía la Edge Function tiktok-upload (acción
+// direct_init). credentials se ignora a propósito: el Edge Function resuelve
+// access_token/refresh_token internamente desde social_accounts por
+// account_id, nunca desde Agent 3 (ver lib/social/tiktok.ts, comentario de
+// encabezado, y lib/social/credentialFields.ts: tiktok: []).
 export const PUBLISHERS: Partial<Record<SocialPlatform, Publisher>> = {
   youtube: (post, creds, onOperationRef) => publishToYouTube(post, creds as never, onOperationRef),
   facebook: (post, creds) => publishToFacebook(post, creds as never),
   instagram: (post, creds, onOperationRef) => publishToInstagram(post, creds as never, onOperationRef),
+  tiktok: (post, creds, onOperationRef) => publishToTikTok(post, creds, onOperationRef),
 };
