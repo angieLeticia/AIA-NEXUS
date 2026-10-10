@@ -356,7 +356,7 @@ solo *dentro de* una sesión ya iniciada por un humano.
 
 **Por qué no es 🟢 Autónomo:** no hay ningún disparador automático (cron, tarea programada,
 webhook) que inicie un ciclo sin que un humano abra la sesión — confirmado por la ausencia de
-una tarea de Windows equivalente a `VisteapyAgentProduccion`/`VisteapyAgentPublicacion` para
+una tarea de Windows equivalente a `AIANexusForge`/`AIANexusPulse` (antes `VisteapyAgentProduccion`/`VisteapyAgentPublicacion`) para
 este proceso.
 
 **Por qué no es 🔴 Manual puro:** dentro de una sesión ya iniciada, demuestra decisiones

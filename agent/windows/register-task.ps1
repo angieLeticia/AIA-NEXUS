@@ -1,14 +1,15 @@
-# Registra la Tarea Programada de Windows que arranca el watcher de la Fase 2 al
-# iniciar sesion. Ejecutar UNA VEZ. No requiere permisos de Administrador en la
-# mayoria de configuraciones (se registra para el usuario actual).
+# Registra la Tarea Programada de Windows que arranca AIA NEXUS PULSE (el
+# watcher de deteccion/registro, agent/run.mts) al iniciar sesion. Ejecutar
+# UNA VEZ. No requiere permisos de Administrador en la mayoria de
+# configuraciones (se registra para el usuario actual).
 #
 # IMPORTANTE: mantener este archivo en ASCII puro (ver nota en start-agent.ps1).
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $WrapperScript = Join-Path $RepoRoot "agent\windows\start-agent.ps1"
-$TaskName = "VisteapyAgentPublicacion"
-$TaskPath = "\Visteapy\"
+$TaskName = "AIANexusPulse"
+$TaskPath = "\AIANexus\"
 
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WrapperScript`""
@@ -23,7 +24,7 @@ $Settings = New-ScheduledTaskSettingsSet `
 
 Register-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath `
     -Action $Action -Trigger $Trigger -Settings $Settings `
-    -Description "Agente de deteccion/registro de contenido (Fase 2) para D:\MATERIAL VIDEOS. No publica nada todavia." `
+    -Description "AIA NEXUS PULSE - Agente de deteccion/registro de contenido para D:\AIA NEXUS\MATERIAL VIDEOS. No publica nada." `
     -Force
 
 Write-Host "Tarea '$TaskPath$TaskName' registrada."

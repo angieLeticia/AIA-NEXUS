@@ -19,7 +19,7 @@ que GitHub no conoce.
 ## PRODUCCIÓN REAL
 
 - **Windows Task Scheduler** ejecutando localmente `scripts/pipeline/agent.mts` (tarea
-  `VisteapyAgentProduccion`) y `agent/run.mts` (tarea `VisteapyAgentPublicacion`, solo
+  `AIANexusForge`, antes `VisteapyAgentProduccion`) y `agent/run.mts` (tarea `AIANexusPulse`, antes `VisteapyAgentPublicacion`, solo
   detección) — esto SÍ corre de verdad, porque las tareas de Windows ejecutan archivos locales
   directamente y no dependen de git.
 - El canal **SIN EXPLICACIÓN**: tiene `content_account`, 3 `social_accounts` activas, 57

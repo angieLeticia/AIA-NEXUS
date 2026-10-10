@@ -1,14 +1,14 @@
-# Elimina UNICAMENTE la Tarea Programada del agente de PRODUCCION, creada por
-# register-task.ps1. No toca la tarea del agente de publicacion
-# (VisteapyAgentPublicacion), ni state/, ni queue.json, ni agent.lock, ni
+# Elimina UNICAMENTE la Tarea Programada del agente de PRODUCCION (AIA NEXUS
+# FORGE), creada por register-task.ps1. No toca la tarea del agente de
+# publicacion (AIANexusPulse), ni state/, ni queue.json, ni agent.lock, ni
 # logs, ni ningun archivo de produccion - solo desregistra la tarea de
 # Windows. Seguro de correr mas de una vez.
 #
 # IMPORTANTE: mantener este archivo en ASCII puro (ver nota en start-agent.ps1).
 $ErrorActionPreference = "Stop"
 
-$TaskName = "VisteapyAgentProduccion"
-$TaskPath = "\Visteapy\"
+$TaskName = "AIANexusForge"
+$TaskPath = "\AIANexus\"
 
 $existing = Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -ErrorAction SilentlyContinue
 if (-not $existing) {

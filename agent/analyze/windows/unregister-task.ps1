@@ -2,8 +2,8 @@
 # IMPORTANTE: mantener este archivo en ASCII puro (ver nota en start-agent.ps1).
 $ErrorActionPreference = "Stop"
 
-$TaskName = "VisteapyAgentAnalyze"
-$TaskPath = "\Visteapy\"
+$TaskName = "AIANexusScout"
+$TaskPath = "\AIANexus\"
 
 $existing = Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -ErrorAction SilentlyContinue
 if (-not $existing) {

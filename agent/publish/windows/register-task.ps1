@@ -7,8 +7,8 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $WrapperScript = Join-Path $RepoRoot "agent\publish\windows\start-agent.ps1"
-$TaskName = "VisteapyAgentPublish"
-$TaskPath = "\Visteapy\"
+$TaskName = "AIANexusPublisher"
+$TaskPath = "\AIANexus\"
 
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WrapperScript`""
@@ -23,7 +23,7 @@ $Settings = New-ScheduledTaskSettingsSet `
 
 Register-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath `
     -Action $Action -Trigger $Trigger -Settings $Settings `
-    -Description "Agente de publicacion (claim + identidad + DRY_RUN gate) - Fase 5.6. Pasadas cada 5 min. Respeta DRY_RUN de .env.local. Independiente de produccion/analisis/scheduling." `
+    -Description "AIA NEXUS PUBLISHER - Agente de publicacion (claim + identidad + DRY_RUN gate). Pasadas cada 5 min. Respeta DRY_RUN de .env.local. Independiente de produccion/analisis/scheduling." `
     -Force
 
 Write-Host "Tarea '$TaskPath$TaskName' registrada."

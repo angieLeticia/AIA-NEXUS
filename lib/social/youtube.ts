@@ -85,7 +85,7 @@ export async function publishToYouTube(
       },
       body: JSON.stringify({
         snippet: {
-          title: post.title || "Visteapy",
+          title: post.title || "AIA NEXUS",
           description: post.caption || "",
           // Fase 5.20 (Phase A1) — social_posts.hashtags -> tags reales de
           // YouTube. resolveYoutubeTags() ya filtra duplicados (dentro de la

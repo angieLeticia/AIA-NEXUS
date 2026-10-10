@@ -19,7 +19,7 @@
 |---|---|---|
 | Ingesta / Inbox (nueva, aún no implementada) | — (no existe) | Es diseño puro en esta fase |
 | Agente de investigación opcional (antiguo "Agente 1") | 🟠 **Nivel 1** | Corre sin intervención dentro de una sesión ya iniciada (demostrado: 8 proyectos en un ciclo), pero no tiene disparador propio — sigue dependiendo de que alguien abra la sesión (EVIDENCIA, Fase 0.1/1.2) |
-| Agente 2 — render (`scripts/pipeline`) | 🟡 **Nivel 2** | Tiene tarea de Windows que se auto-arranca (`VisteapyAgentProduccion`) y recovery real de crashes, pero exige `pipeline:authorize` humano antes de encolar — gate deliberado, no ausencia de autonomía (EVIDENCIA) |
+| Agente 2 — render (`scripts/pipeline`) | 🟡 **Nivel 2** | Tiene tarea de Windows que se auto-arranca (`AIANexusForge`, antes `VisteapyAgentProduccion`) y recovery real de crashes, pero exige `pipeline:authorize` humano antes de encolar — gate deliberado, no ausencia de autonomía (EVIDENCIA) |
 | Agente 3 — Flujo A (legacy) | 🔴 **Nivel 0 efectivo** | El workflow nunca fue desplegado a GitHub (EVIDENCIA, Fase 1.2) — hoy no corre en absoluto pese a estar "programado" en el código |
 | Agente 3 — Flujo B (endurecido) | 🟠 **Nivel 1** | Corre correctamente si se invoca a mano; nunca tuvo scheduler (EVIDENCIA) |
 | Orquestador (nuevo, aún no implementado) | — (no existe) | Diseño puro en esta fase |

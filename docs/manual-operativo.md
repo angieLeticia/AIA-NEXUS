@@ -152,22 +152,24 @@ Comandos de apoyo reales (no son "agentes", son utilidades puntuales):
 ### Arranque
 Los 5 agentes están registrados como **Tareas Programadas de Windows** (disparador: inicio de sesión del usuario — `MSFT_TaskLogonTrigger`), cada una ejecutando un wrapper `.ps1` que relanza el agente indefinidamente si se cae:
 
-| Tarea Programada (nombre real) | Qué lanza en realidad | Wrapper |
+| Tarea Programada (nombre real, AIA NEXUS) | Qué lanza en realidad | Wrapper |
 |---|---|---|
-| `VisteapyAgentProduccion` | Agente 2 (`scripts/pipeline/agent.mts`) | `scripts/pipeline/windows/start-agent.ps1` |
-| `VisteapyAgentPublicacion` | ⚠️ Agente 1 — **detección** (`agent/run.mts`), pese al nombre | `agent/windows/start-agent.ps1` |
-| `VisteapyAgentAnalyze` | Agente 1 — análisis (`agent/analyze/run.mts`) | `agent/analyze/windows/start-agent.ps1` |
-| `VisteapyAgentSchedule` | Scheduling (`agent/schedule/run.mts`) | `agent/schedule/windows/start-agent.ps1` |
-| `VisteapyAgentPublish` | Agente 3 — publicación real (`agent/publish/run.mts`) | `agent/publish/windows/start-agent.ps1` |
+| `AIANexusForge` | Agente 2 / AIA NEXUS FORGE (`scripts/pipeline/agent.mts`) | `scripts/pipeline/windows/start-agent.ps1` |
+| `AIANexusPulse` | AIA NEXUS PULSE — **detección/watcher** (`agent/run.mts`) | `agent/windows/start-agent.ps1` |
+| `AIANexusScout` | AIA NEXUS SCOUT — análisis (`agent/analyze/run.mts`) | `agent/analyze/windows/start-agent.ps1` |
+| `AIANexusScheduler` | AIA NEXUS SCHEDULER (`agent/schedule/run.mts`) | `agent/schedule/windows/start-agent.ps1` |
+| `AIANexusPublisher` | AIA NEXUS PUBLISHER — publicación real (`agent/publish/run.mts`) | `agent/publish/windows/start-agent.ps1` |
 
-> **Nota real, no un error mío**: `VisteapyAgentPublicacion` NO es el agente de
-> publicación — ese es `VisteapyAgentPublish`. El nombre de la tarea es
-> engañoso; lo confirmé leyendo el wrapper real que ejecuta.
+> Renombradas el 2026-10-10 (de `Visteapy*` a `AIANexus*`, carpeta de tareas
+> `\Visteapy\` → `\AIANexus\`) — mismas acciones, triggers y configuración,
+> solo cambió el nombre. Antes del rename, `VisteapyAgentPublicacion` NO era
+> el agente de publicación — ese era `VisteapyAgentPublish`; el nombre de la
+> tarea era engañoso. El rename a `AIANexusPulse` corrige esa confusión.
 
 Todas estaban en estado **`Ready`** (registradas, no corriendo en este
 momento) al inspeccionarlas — ninguna se modificó ni se tocó.
 
-- **Iniciar manualmente una tarea**: `Start-ScheduledTask -TaskName "VisteapyAgentProduccion"` (PowerShell, como administrador si hace falta).
+- **Iniciar manualmente una tarea**: `Start-ScheduledTask -TaskName "AIANexusForge" -TaskPath "\AIANexus\"` (PowerShell, como administrador si hace falta).
 - **Iniciar sin Task Scheduler** (para depurar en primer plano): `npx tsx scripts/pipeline/agent.mts` con `$env:RUN_SCOPE="PRODUCTION"` y `$env:MATERIAL_ROOT="D:\MATERIAL VIDEOS"` ya fijados en esa sesión de PowerShell.
 
 ### Parada

@@ -7,8 +7,8 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $WrapperScript = Join-Path $RepoRoot "agent\schedule\windows\start-agent.ps1"
-$TaskName = "VisteapyAgentSchedule"
-$TaskPath = "\Visteapy\"
+$TaskName = "AIANexusScheduler"
+$TaskPath = "\AIANexus\"
 
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WrapperScript`""
@@ -23,7 +23,7 @@ $Settings = New-ScheduledTaskSettingsSet `
 
 Register-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath `
     -Action $Action -Trigger $Trigger -Settings $Settings `
-    -Description "Agente de scheduling (content_metadata ready -> social_posts) - Fase 5.6. Pasadas cada 5 min. Independiente de produccion/analisis/publicacion." `
+    -Description "AIA NEXUS SCHEDULER - Agente de scheduling (content_metadata ready -> social_posts). Pasadas cada 5 min. Independiente de produccion/analisis/publicacion." `
     -Force
 
 Write-Host "Tarea '$TaskPath$TaskName' registrada."

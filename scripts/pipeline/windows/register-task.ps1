@@ -4,7 +4,7 @@
 # configuraciones (se registra para el usuario actual).
 #
 # Independiente por completo del agente de PUBLICACION (agent/windows/*.ps1,
-# tarea "VisteapyAgentPublicacion") - nombre de tarea distinto, script
+# tarea "AIANexusPulse") - nombre de tarea distinto, script
 # distinto, no se tocan ni se comparten entre si.
 #
 # IMPORTANTE: mantener este archivo en ASCII puro (ver nota en start-agent.ps1).
@@ -16,8 +16,8 @@ $ErrorActionPreference = "Stop"
 # scripts\ en vez de la raiz real, asi que se calcula con cuidado.
 $RepoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $WrapperScript = Join-Path $RepoRoot "scripts\pipeline\windows\start-agent.ps1"
-$TaskName = "VisteapyAgentProduccion"
-$TaskPath = "\Visteapy\"
+$TaskName = "AIANexusForge"
+$TaskPath = "\AIANexus\"
 
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WrapperScript`""
@@ -36,7 +36,7 @@ $Settings = New-ScheduledTaskSettingsSet `
 
 Register-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath `
     -Action $Action -Trigger $Trigger -Settings $Settings `
-    -Description "Agente de produccion audiovisual (Fase 2-3.1) para D:\MATERIAL VIDEOS. Independiente del agente de publicacion." `
+    -Description "AIA NEXUS FORGE - Agente de produccion audiovisual para D:\AIA NEXUS\MATERIAL VIDEOS. Independiente del agente de publicacion." `
     -Force
 
 Write-Host "Tarea '$TaskPath$TaskName' registrada."
